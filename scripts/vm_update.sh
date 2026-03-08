@@ -15,9 +15,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# 获取脚本所在目录（项目根目录）
+# 获取项目根目录（脚本在 scripts/ 子目录下）
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_DIR"
 
 echo ""
 echo -e "${BLUE}========================================"
@@ -53,7 +54,7 @@ git fetch origin
 
 # 检查是否有更新
 LOCAL=$(git rev-parse HEAD)
-REMOTE=$(git rev-parse origin/master 2>/dev/null || git rev-parse origin/main)
+REMOTE=$(git rev-parse origin/main)
 
 if [ "$LOCAL" = "$REMOTE" ]; then
     echo -e "${GREEN}已是最新版本，无需更新。${NC}"
@@ -65,8 +66,7 @@ fi
 echo ""
 echo -e "${YELLOW}[3/3] 更新文件...${NC}"
 
-# 使用sparse checkout只更新需要的文件
-git checkout origin/master -- Lin_ws/ start_conn.py 2>/dev/null || \
+# 只更新需要的文件
 git checkout origin/main -- Lin_ws/ start_conn.py
 
 if [ $? -eq 0 ]; then
