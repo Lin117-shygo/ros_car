@@ -1,0 +1,3 @@
+[submodule "Lin_ws/src/ydlidar_ros_driver"]
+	path = Lin_ws/src/ydlidar_ros_driver
+	url = https://gitee.com/zhangyigeng/ydlidar_ros_driver.git

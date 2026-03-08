@@ -1,0 +1,18 @@
+# ROS catkin 编译产物
+Lin_ws/build/
+Lin_ws/devel/
+Lin_ws/.catkin_workspace
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 日志
+*.log
