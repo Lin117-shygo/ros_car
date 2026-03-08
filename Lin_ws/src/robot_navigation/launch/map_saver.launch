@@ -1,4 +1,5 @@
 <launch>
-	<node pkg="map_server" type="map_saver" name="map_saver1" args="-f /home/GGB/catkin_ws/src/robot_navigation/map/map" output="screen">	
+	<node pkg="map_server" type="map_saver" name="map_saver1"
+		  args="-f $(find robot_navigation)/map/map" output="screen">
 	</node>
 </launch>
