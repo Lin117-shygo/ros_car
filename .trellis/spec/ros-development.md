@@ -95,7 +95,7 @@ typedef struct {
 [2024-03-08] RViz 显示 TF 错误 → 新增传感器后忘记更新 URDF
 -->
 
-（待填充）
+[2026-03-09] navigation.launch 导航不准且频繁碰壁 -> 先排查底盘里程计与导航参数，不要只归因于宿舍杂物。已确认问题包括：1) bringup.launch 中 odom_x_scale=2.06、odom_z_scale_positive/negative=2.1，属于异常大的里程计修正量；2) local_costmap 使用 map 作为 global_frame，局部规划容易受 AMCL 跳变影响；3) 局部代价地图窗口仅 0.8m x 0.8m，且 inflation_radius=0.15、TEB min_obstacle_dist=0.1，安全裕量偏小；4) 雷达驱动发布 laser_frame，但 costmap_common_params.yaml 中 sensor_frame 写成 laser；5) ESP32 wireless_conn.c 发送 ROS 数据帧时 gyro 字段误用了 curr_acce。建议排查顺序：先做直线 1m 和原地 360° 标定，再修正 TF/传感器帧与 local_costmap 配置，最后再细调 AMCL/TEB。
 
 
 
@@ -108,4 +108,3 @@ A: 检查 `odom_x_scale` 和 `odom_z_scale_*` 校准参数
 
 ### Q: 通讯断开怎么排查？
 A: 1) 检查 WiFi 连接 2) 确认 start_conn.py 正常运行 3) 检查 UDP 端口
-

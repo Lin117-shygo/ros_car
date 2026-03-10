@@ -29,8 +29,8 @@ with \
     s2.settimeout(5)
 
     serial_ports = {
-        "lidar": (f"/{pts_dir}/pts0", f"/{pts_dir}/pts1"),
-        "chassis": (f"/{pts_dir}/pts2", f"/{pts_dir}/pts3"),
+        "lidar": (f"{pts_dir}/pts0", f"{pts_dir}/pts1"),
+        "chassis": (f"{pts_dir}/pts2", f"{pts_dir}/pts3"),
     }
 
     #创建虚拟串口

@@ -14,10 +14,11 @@
         <param name="gyro_frame_id"      type="string" value="imu_link"/> 
 
         <!-- 里程计修正参数，对来自运动底盘的速度信息进行手动修正 -->
-        <param name="odom_x_scale"      type="double" value="2.06"/> 
-        <param name="odom_y_scale"      type="double" value="1.0"/> 
-        <param name="odom_z_scale_positive"      type="double" value="2.1"/> 
-        <param name="odom_z_scale_negative"      type="double" value="2.1"/> 
+        <!-- 2026-03-09 校准：线性1m测试、角度360°测试 -->
+        <param name="odom_x_scale"      type="double" value="2.18"/>
+        <param name="odom_y_scale"      type="double" value="1.0"/>
+        <param name="odom_z_scale_positive"      type="double" value="1.93"/>
+        <param name="odom_z_scale_negative"      type="double" value="1.93"/> 
     </node>
 
     <!-- 发布用于建图、导航的TF关系与小车外形可视化 -->
