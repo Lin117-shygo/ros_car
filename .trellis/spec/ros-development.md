@@ -1,5 +1,49 @@
 # ROS 小车开发规范
 
+## AI 工作流规范（必须遵守）
+
+### 开发前同步检查
+**每次开始查看或修改 Lin_ws/ 代码前，必须先检查远程仓库是否有更新：**
+
+```bash
+# 在项目根目录执行
+git fetch origin
+git log --oneline HEAD..origin/main
+```
+
+如果发现有远程更新：
+1. 告知用户："检测到远程仓库有更新，建议先同步"
+2. 提示用户运行 `scripts/host_update.bat`（主机）或 `scripts/vm_update.sh`（虚拟机）
+3. 等待用户确认后再继续工作
+
+### 双向代码流
+```
+主机(Windows)                    虚拟机(Ubuntu)
+    │                                  │
+    ├─ scripts/git_sync.bat ──push──→  │
+    │                                  │
+    │  ←──pull── scripts/vm_update.sh ─┤
+    │                                  │
+    ├─ scripts/host_update.bat ←─pull──┤
+    │                                  │
+    │  ──push──→ scripts/vm_commit.sh ─┤
+```
+
+### 脚本说明
+| 脚本 | 位置 | 用途 |
+|------|------|------|
+| `git_sync.bat` | 主机 | 提交并推送代码 |
+| `host_update.bat` | 主机 | 从远程拉取更新 |
+| `vm_update.sh` | 虚拟机 | 从远程拉取更新 |
+| `vm_commit.sh` | 虚拟机 | 提交并推送代码 |
+
+### 工作重点
+- **主要开发目录**: `Lin_ws/`（ROS 工作空间）
+- **下位机代码**: `micu_ros_car/`（基本不修改）
+- 虚拟机端调参测试后，使用 `vm_commit.sh` 提交
+
+---
+
 ## 项目概述
 
 这是一个 ROS1 自主导航小车项目，采用上下位机分离架构。
@@ -97,6 +141,8 @@ typedef struct {
 
 [2026-03-09] navigation.launch 导航不准且频繁碰壁 -> 先排查底盘里程计与导航参数，不要只归因于宿舍杂物。已确认问题包括：1) bringup.launch 中 odom_x_scale=2.06、odom_z_scale_positive/negative=2.1，属于异常大的里程计修正量；2) local_costmap 使用 map 作为 global_frame，局部规划容易受 AMCL 跳变影响；3) 局部代价地图窗口仅 0.8m x 0.8m，且 inflation_radius=0.15、TEB min_obstacle_dist=0.1，安全裕量偏小；4) 雷达驱动发布 laser_frame，但 costmap_common_params.yaml 中 sensor_frame 写成 laser；5) ESP32 wireless_conn.c 发送 ROS 数据帧时 gyro 字段误用了 curr_acce。建议排查顺序：先做直线 1m 和原地 360° 标定，再修正 TF/传感器帧与 local_costmap 配置，最后再细调 AMCL/TEB。
 
+
+[2026-03-10] navigation.launch 启动后导航明显不准且容易碰撞 -> 主因可能不是参数本身，而是 AMCL 初始位姿错误。启动导航时不要求小车必须回到建图原点 0,0,0，但必须放在地图中的已知位置，并在 RViz 用 2D Pose Estimate 给出正确初始位姿；如果直接在任意位置启动且不设置初始位姿，AMCL 会在错误初值上定位，导致全局路径、局部避障和碰撞表现都异常。
 
 
 ---
