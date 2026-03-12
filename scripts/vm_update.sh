@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ROS小车项目 - 代码更新脚本 (Ubuntu虚拟机)
-# 只更新 Lin_ws 目录和 start_conn.py 文件
+# 只更新 Lin_ws 目录（ROS工作空间）
 #
 # 安装说明:
 # 1. 将此脚本复制到虚拟机的项目目录
@@ -35,7 +35,7 @@ fi
 
 # 2. 显示当前状态
 echo -e "${YELLOW}[1/3] 检查本地状态...${NC}"
-LOCAL_CHANGES=$(git status --porcelain Lin_ws/ start_conn.py 2>/dev/null)
+LOCAL_CHANGES=$(git status --porcelain Lin_ws/ 2>/dev/null)
 if [ -n "$LOCAL_CHANGES" ]; then
     echo -e "${YELLOW}警告: 检测到本地修改，将被覆盖:${NC}"
     echo "$LOCAL_CHANGES"
@@ -66,8 +66,8 @@ fi
 echo ""
 echo -e "${YELLOW}[3/3] 更新文件...${NC}"
 
-# 只更新需要的文件
-git checkout origin/main -- Lin_ws/ start_conn.py
+# 只更新 Lin_ws 目录
+git checkout origin/main -- Lin_ws/
 
 if [ $? -eq 0 ]; then
     echo ""
@@ -75,9 +75,7 @@ if [ $? -eq 0 ]; then
     echo "  更新完成！"
     echo -e "========================================${NC}"
     echo ""
-    echo "已更新文件:"
-    echo "  - Lin_ws/ (ROS工作空间)"
-    echo "  - start_conn.py (连接脚本)"
+    echo "已更新: Lin_ws/ (ROS工作空间)"
     echo ""
 
     # 提示重新编译
