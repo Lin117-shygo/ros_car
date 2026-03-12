@@ -169,8 +169,10 @@ class WaypointPatrol:
         elif state == GoalStatus.PREEMPTED: #被抢占
             rospy.loginfo(f"目标点{waypoint_name}被抢占")
             return False
-
-        pass  # 请在此实现你的逻辑
+        else:
+            rospy.loginfo(f"遭遇未知情况，无法到达目标点{waypoint_name}")
+            return False
+        
 
     def spin(self):
         """保持节点运行"""
