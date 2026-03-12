@@ -39,10 +39,10 @@ git status --short Lin_ws/
 echo "----------------------------------------"
 echo ""
 
-# 检查是否有变更
-CHANGES=$(git status --porcelain Lin_ws/ 2>/dev/null)
+# 检查是否有变更（排除子模块）
+CHANGES=$(git status --porcelain Lin_ws/ 2>/dev/null | grep -v "^.m")
 if [ -z "$CHANGES" ]; then
-    echo -e "${GREEN}Lin_ws/ 没有需要提交的更改。${NC}"
+    echo -e "${GREEN}Lin_ws/ 没有需要提交的更改（子模块变更已忽略）。${NC}"
     exit 0
 fi
 
@@ -73,10 +73,18 @@ if [ -z "$COMMIT_MSG" ]; then
     exit 1
 fi
 
-# 6. 执行提交 (只添加 Lin_ws 目录)
+# 6. 执行提交 (只添加 Lin_ws 目录，排除子模块)
 echo ""
 echo -e "${YELLOW}[3/4] 添加并提交更改...${NC}"
 git add Lin_ws/
+
+# 检查是否有内容被暂存
+STAGED=$(git diff --cached --name-only 2>/dev/null)
+if [ -z "$STAGED" ]; then
+    echo -e "${YELLOW}没有新的更改被暂存（可能只有子模块变更）。${NC}"
+    exit 0
+fi
+
 git commit -m "$COMMIT_MSG"
 
 if [ $? -ne 0 ]; then
