@@ -6,8 +6,8 @@
     <arg name="is_cartographer" default="false"/>
     <!--打开底盘驱动节点，初始化串口等操作-->
     <node pkg="chassis_bringup" type="chassis_drive_node" name="chassis_drive" output="screen" respawn="false" >
-        <!-- <param name="usart_port_name"    type="string" value="//home/GGB/Lin_ws/pts/pts3"/>   -->
-        <param name="usart_port_name"    type="string" value="//home/GGB/Lin_ws/pts/pts3"/> 
+        <!-- <param name="usart_port_name"    type="string" value="/home/GGB/ros_car/Lin_ws/pts/pts3"/>   -->
+        <param name="usart_port_name"    type="string" value="/home/GGB/ros_car/Lin_ws/pts/pts3"/> 
         <param name="serial_baud_rate"   type="int"    value="115200"/>
         <param name="odom_frame_id"      type="string" value="$(arg odom_frame_id)"/> 
         <param name="robot_frame_id"     type="string" value="base_footprint"/> 

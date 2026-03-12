@@ -152,7 +152,6 @@ class WaypointPatrol:
                    - GoalStatus.ABORTED (4): 导航失败（无法到达）
                    - GoalStatus.PREEMPTED (2): 被抢占/取消
             waypoint_name: 当前目标点名称
-
         返回:
             bool: True 表示继续巡航, False 表示停止
 
@@ -160,6 +159,17 @@ class WaypointPatrol:
             - 成功时：打印日志，等待 self.wait_duration 秒，返回 True
             - 失败时：你可以选择跳过该点继续、或者停止巡航
         """
+        if state == GoalStatus.SUCCEEDED: #成功到达
+            rospy.loginfo(f"成功到达目标点{waypoint_name}")
+            rospy.sleep(self.wait_duration)
+            return True
+        elif state == GoalStatus.ABORTED: #导航失败（无法到达）
+            rospy.loginfo(f"无法到达目标点{waypoint_name}")
+            return False
+        elif state == GoalStatus.PREEMPTED: #被抢占
+            rospy.loginfo(f"目标点{waypoint_name}被抢占")
+            return False
+
         pass  # 请在此实现你的逻辑
 
     def spin(self):
