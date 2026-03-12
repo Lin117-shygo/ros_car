@@ -143,6 +143,8 @@ typedef struct {
 
 
 [2026-03-10] navigation.launch 启动后导航明显不准且容易碰撞 -> 主因可能不是参数本身，而是 AMCL 初始位姿错误。启动导航时不要求小车必须回到建图原点 0,0,0，但必须放在地图中的已知位置，并在 RViz 用 2D Pose Estimate 给出正确初始位姿；如果直接在任意位置启动且不设置初始位姿，AMCL 会在错误初值上定位，导致全局路径、局部避障和碰撞表现都异常。
+[2026-03-12] 多目标巡航 waypoint_patrol.py 初版审查 -> 本地工作区中的实现仍未闭环：1) _handle_navigation_result 仍是 pass，会导致第一个目标点返回后直接退出巡航；2) start_patrol 服务回调内直接执行 _run_patrol，并在 wait_for_result() 阻塞，调用方会一直等到整轮巡航结束才拿到服务响应；3) robot_navigation/package.xml 尚未显式补齐 std_srvs、tf、actionlib_msgs 运行依赖，CMakeLists.txt 也未启用 catkin_install_python，后续切换环境或安装空间时容易出现节点不可运行问题。审查多目标巡航时优先确认：目标成功/失败后的状态转移、启动服务是否异步返回、脚本安装与依赖是否完整。
+[2026-03-12] 多目标巡航第三轮审查 -> `waypoint_patrol.py` 已修复 `is_running` 状态复位和停止/重启时的线程竞态，`package.xml` 也已补齐运行依赖；当前遗留问题是 `robot_navigation/CMakeLists.txt` 仅安装了 `scripts/waypoint_patrol.py`，尚未安装 `launch/` 与 `config/` 目录。在源码空间运行可暂时忽略，但若后续切换到 install 空间或做部署，需要补装 `launch/patrol.launch` 和 `config/waypoints.yaml`，否则启动文件或巡航点配置可能找不到。
 
 
 ---

@@ -1,0 +1,22 @@
+<launch>
+  <!-- 多目标点巡航启动文件 -->
+
+  <!-- 参数 -->
+  <arg name="map_file" default="$(find robot_navigation)/map/map.yaml"/>
+  <arg name="waypoints_file" default="$(find robot_navigation)/config/waypoints.yaml"/>
+  <arg name="planner" default="teb" doc="opt: dwa, teb"/>
+  <arg name="open_rviz" default="true"/>
+
+  <!-- 启动导航 (包含底盘驱动、雷达、AMCL、move_base) -->
+  <include file="$(find robot_navigation)/launch/navigation.launch">
+    <arg name="map_file" value="$(arg map_file)"/>
+    <arg name="planner" value="$(arg planner)"/>
+    <arg name="open_rviz" value="$(arg open_rviz)"/>
+  </include>
+
+  <!-- 启动巡航节点 -->
+  <node pkg="robot_navigation" type="waypoint_patrol.py" name="waypoint_patrol" output="screen">
+    <param name="waypoints_file" value="$(arg waypoints_file)"/>
+  </node>
+
+</launch>

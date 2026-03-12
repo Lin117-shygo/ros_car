@@ -61,8 +61,11 @@
 
   <!-- 多目标点巡航依赖 -->
   <exec_depend>actionlib</exec_depend>
+  <exec_depend>actionlib_msgs</exec_depend>
   <exec_depend>move_base_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+  <exec_depend>tf</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
