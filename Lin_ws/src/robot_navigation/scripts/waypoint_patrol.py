@@ -8,6 +8,7 @@
 import rospy
 import yaml
 import actionlib
+import threading
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import Quaternion
 from actionlib_msgs.msg import GoalStatus
@@ -54,6 +55,7 @@ class WaypointPatrol:
         self.current_index = 0
         self.is_running = False
         self.is_paused = False
+        self._patrol_thread = None
 
         # 服务：启动/停止巡航
         rospy.Service('~start_patrol', Empty, self._handle_start)
@@ -87,12 +89,22 @@ class WaypointPatrol:
         return goal
 
     def _handle_start(self, req):
-        """处理启动巡航请求"""
+        """处理启动巡航请求（异步启动，立即返回）"""
+        # 检查旧线程是否还在运行，如果在则等待它结束
+        if self._patrol_thread is not None and self._patrol_thread.is_alive():
+            rospy.logwarn("等待上一次巡航线程结束...")
+            self._patrol_thread.join(timeout=2.0)
+            if self._patrol_thread.is_alive():
+                rospy.logerr("旧巡航线程未能及时结束，请稍后重试")
+                return EmptyResponse()
+
         if not self.is_running:
             self.is_running = True
             self.current_index = 0
             rospy.loginfo("开始巡航...")
-            self._run_patrol()
+            # 使用线程异步执行巡航，避免阻塞服务调用方
+            self._patrol_thread = threading.Thread(target=self._run_patrol, daemon=True)
+            self._patrol_thread.start()
         else:
             rospy.logwarn("巡航已在运行中")
         return EmptyResponse()
@@ -102,64 +114,59 @@ class WaypointPatrol:
         if self.is_running:
             self.is_running = False
             self.client.cancel_all_goals()
+            # 等待巡航线程结束，避免竞态
+            if self._patrol_thread is not None and self._patrol_thread.is_alive():
+                self._patrol_thread.join(timeout=3.0)
             rospy.loginfo("巡航已停止")
         return EmptyResponse()
 
     def _run_patrol(self):
         """执行巡航主循环"""
-        while self.is_running and not rospy.is_shutdown():
-            waypoint = self.waypoints[self.current_index]
-            name = waypoint.get('name', f'点{self.current_index}')
+        try:
+            while self.is_running and not rospy.is_shutdown():
+                waypoint = self.waypoints[self.current_index]
+                name = waypoint.get('name', f'点{self.current_index}')
 
-            rospy.loginfo(f"前往目标点 [{self.current_index + 1}/{len(self.waypoints)}]: {name}")
+                rospy.loginfo(f"前往目标点 [{self.current_index + 1}/{len(self.waypoints)}]: {name}")
 
-            # 发送目标
-            goal = self._create_goal(waypoint)
-            self.client.send_goal(goal)
+                # 发送目标
+                goal = self._create_goal(waypoint)
+                self.client.send_goal(goal)
 
-            # 等待结果
-            self.client.wait_for_result()
-            state = self.client.get_state()
+                # 等待结果
+                self.client.wait_for_result()
+                state = self.client.get_state()
 
-            # TODO(human): 实现导航结果处理逻辑
-            # 根据 state 判断是否成功，并决定下一步动作
-            # state == GoalStatus.SUCCEEDED 表示成功到达
-            # 其他状态表示失败（如 ABORTED, PREEMPTED 等）
-            should_continue = self._handle_navigation_result(state, name)
-            if not should_continue:
-                break
-
-            # 更新索引
-            self.current_index += 1
-            if self.current_index >= len(self.waypoints):
-                if self.loop:
-                    self.current_index = 0
-                    rospy.loginfo("完成一轮巡航，开始下一轮...")
-                else:
-                    rospy.loginfo("巡航完成！")
-                    self.is_running = False
+                # 处理导航结果
+                should_continue = self._handle_navigation_result(state, name)
+                if not should_continue:
                     break
 
-        rospy.loginfo("巡航循环结束")
+                # 更新索引
+                self.current_index += 1
+                if self.current_index >= len(self.waypoints):
+                    if self.loop:
+                        self.current_index = 0
+                        rospy.loginfo("完成一轮巡航，开始下一轮...")
+                    else:
+                        rospy.loginfo("巡航完成！")
+                        break
+        finally:
+            # 无论何种原因退出，都确保状态正确重置
+            self.is_running = False
+            rospy.loginfo("巡航循环结束")
 
     def _handle_navigation_result(self, state, waypoint_name):
         """
-        TODO(human): 处理导航结果，决定是否继续巡航
+        处理导航结果，决定是否继续巡航
 
         参数:
-            state: GoalStatus 枚举值，表示导航结果
-                   - GoalStatus.SUCCEEDED (3): 成功到达
-                   - GoalStatus.ABORTED (4): 导航失败（无法到达）
-                   - GoalStatus.PREEMPTED (2): 被抢占/取消
+            state: GoalStatus 枚举值
             waypoint_name: 当前目标点名称
         返回:
-            bool: True 表示继续巡航, False 表示停止
-
-        提示:
-            - 成功时：打印日志，等待 self.wait_duration 秒，返回 True
-            - 失败时：你可以选择跳过该点继续、或者停止巡航
+            bool: True 继续巡航, False 停止
         """
-        if state == GoalStatus.SUCCEEDED: #成功到达
+        if state == GoalStatus.SUCCEEDED:  # 成功到达
             rospy.loginfo(f"成功到达目标点{waypoint_name}")
             rospy.sleep(self.wait_duration)
             return True
