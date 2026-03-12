@@ -46,7 +46,7 @@ TebLocalPlannerROS:
 
 
   #障碍物参数
-  min_obstacle_dist: 0.1 #和障碍物最小距离，以外形为原点，直接影响机器人避障效果
+  min_obstacle_dist: 0.15 #和障碍物最小距离（增大安全边界，原0.1偏小）
   include_costmap_obstacles: True #是否将动态障碍物预测为速度模型，
   costmap_obstacles_behind_robot_dist: 1.5 #限制机器人后方规划时考虑的局部成本地图障碍物
   obstacle_poses_affected: 15  #障碍物姿态受影响0~30
@@ -56,10 +56,10 @@ TebLocalPlannerROS:
   include_dynamic_obstacles: True 
   dynamic_obstacle_inflation_dist: 0.6
 
-  #目标点误差允许值
-  xy_goal_tolerance: 0.2  #机器人到达目标点时附近时的弧度偏差允许量，在该偏差内认为已经到达目标点，单位为：m
-  yaw_goal_tolerance: 0.1 #机器人到达目标点时附近时的弧度偏差允许量，在该偏差内认为已经到达目标点单位为：rad
-  free_goal_vel: False    #允许机器人以最大速度驶向目的地
+  #目标点误差允许值（精度优先配置）
+  xy_goal_tolerance: 0.05  #位置误差容差，单位：m（原0.2太宽松，改为5cm）
+  yaw_goal_tolerance: 0.05 #角度误差容差，单位：rad（≈2.9°，原0.1≈5.7°）
+  free_goal_vel: False     #允许机器人以最大速度驶向目的地
 
   #轨道配置参数
   teb_autosize: True #优化期间允许改变轨迹的时域长度

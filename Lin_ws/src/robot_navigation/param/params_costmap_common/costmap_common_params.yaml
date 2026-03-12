@@ -15,11 +15,11 @@ footprint: [[-0.072, -0.074], [-0.072, 0.074], [0.072, 0.074], [0.072, -0.074]]
 #根据obstacle_layer、static_layer和footprint生成代价地图
 inflation_layer:
   #是否开启膨胀层
-  enabled: true 
+  enabled: true
   #代价地图数值随与障碍物距离下降的比值，越大会导致路径规划越靠近障碍物
-  cost_scaling_factor: 15
-  #机器人膨胀半径，影响路径规划，单位：m
-  inflation_radius: 0.15
+  cost_scaling_factor: 10
+  #机器人膨胀半径，影响路径规划，单位：m（增大安全边界）
+  inflation_radius: 0.25
 
 #设置静态层参数
 static_layer:
@@ -52,10 +52,9 @@ obstacle_layer:
   scan:
     #观测源数据话题名称
     topic: scan
-    #观测源的TF坐标名称，如果设置为空，会自动从话题数据寻找TF坐标名称
-    #以下三种数据格式支持自动寻找TF坐标名称
-    #sensor_msgs/LaserScan, sensor_msgs/PointCloud, and sensor_msgs/PointCloud2
-    sensor_frame: laser
+    #观测源的TF坐标名称（改为与雷达驱动一致的 laser_frame）
+    #LaserScan 格式支持自动寻找，但显式指定更可靠
+    sensor_frame: laser_frame
     #观测源话题的数据格式，可以为LaserScan、PointCloud、PointCloud2
     data_type: LaserScan
     #保留多久时间内的全部话题数据作为障碍层输入，设置为0代表只保留最近的一帧数据，单位：s
