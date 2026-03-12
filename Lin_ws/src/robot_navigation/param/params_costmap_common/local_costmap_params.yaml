@@ -3,7 +3,7 @@
 #局部代价地图参数命名空间
 local_costmap:
   #代价地图的TF参考坐标系（改用 odom_combined，避免 AMCL 跳变影响局部规划）
-  global_frame: odom_combined
+  global_frame: map
   #机器人的TF坐标名称
   robot_base_frame: base_footprint
   #global_frame和robot_base_frame间的TF坐标停止发布多久后，控制机器人停止，单位：s
