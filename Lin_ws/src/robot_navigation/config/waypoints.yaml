@@ -1,14 +1,11 @@
-# 多目标点巡航配置
-# 使用方法：在 RViz 中查看地图坐标，填入目标点
-
-# 巡航参数
+# Waypoint patrol config
 patrol:
-  loop: true            # 是否循环巡航 (true: A→B→C→A..., false: A→B→C→停止)
-  wait_duration: 2.0    # 每个目标点停留时间 (秒)
+  loop: true
+  wait_duration: 2.0
+  clear_costmaps_each_goal: true
+  clear_costmaps_delay: 0.3
+  clear_costmaps_service: /move_base/clear_costmaps
 
-# 目标点列表
-# x, y: 地图坐标 (米)
-# yaw: 朝向角度 (弧度, 0=朝右, 1.57=朝上, 3.14=朝左, -1.57=朝下)
 waypoints:
   - name: "起点"
     x: 0.0
@@ -23,10 +20,4 @@ waypoints:
   - name: "目标点B"
     x: 1.9868547916412354
     y: -0.02141129970550537
-    yaw: 0
-
-  # 添加更多目标点...
-  # - name: "目标点C"
-  #   x: 0.0
-  #   y: 1.0
-  #   yaw: -1.57
+    yaw: 0.0

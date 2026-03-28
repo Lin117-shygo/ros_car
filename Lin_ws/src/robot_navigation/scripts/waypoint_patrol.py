@@ -35,8 +35,15 @@ class WaypointPatrol:
             return
 
         self.waypoints = self.config.get('waypoints', [])
-        self.loop = self.config.get('patrol', {}).get('loop', True)
-        self.wait_duration = self.config.get('patrol', {}).get('wait_duration', 2.0)
+        patrol_config = self.config.get('patrol', {})
+        self.loop = patrol_config.get('loop', True)
+        self.wait_duration = patrol_config.get('wait_duration', 2.0)
+        self.clear_costmaps_each_goal = patrol_config.get('clear_costmaps_each_goal', True)
+        self.clear_costmaps_delay = patrol_config.get('clear_costmaps_delay', 0.3)
+        self.clear_costmaps_service_name = patrol_config.get(
+            'clear_costmaps_service',
+            '/move_base/clear_costmaps'
+        )
 
         if not self.waypoints:
             rospy.logerr("配置文件中没有定义巡航点！")
@@ -56,6 +63,19 @@ class WaypointPatrol:
         self.is_running = False
         self.is_paused = False
         self._patrol_thread = None
+        self.clear_costmaps_client = None
+
+        if self.clear_costmaps_each_goal:
+            try:
+                rospy.wait_for_service(self.clear_costmaps_service_name, timeout=3.0)
+                self.clear_costmaps_client = rospy.ServiceProxy(
+                    self.clear_costmaps_service_name,
+                    Empty
+                )
+            except rospy.ROSException:
+                rospy.logwarn(
+                    f"clear_costmaps service unavailable: {self.clear_costmaps_service_name}"
+                )
 
         # 服务：启动/停止巡航
         rospy.Service('~start_patrol', Empty, self._handle_start)
@@ -87,6 +107,19 @@ class WaypointPatrol:
         goal.target_pose.pose.position.y = waypoint['y']
         goal.target_pose.pose.orientation = self._yaw_to_quaternion(waypoint.get('yaw', 0.0))
         return goal
+
+    def _clear_costmaps(self, reason):
+        """Clear move_base costmaps before sending the next goal."""
+        if self.clear_costmaps_client is None:
+            return
+
+        try:
+            self.clear_costmaps_client()
+            rospy.loginfo(f"cleared costmaps: {reason}")
+            if self.clear_costmaps_delay > 0.0:
+                rospy.sleep(self.clear_costmaps_delay)
+        except rospy.ServiceException as exc:
+            rospy.logwarn(f"clear_costmaps failed: {exc}")
 
     def _handle_start(self, req):
         """处理启动巡航请求（异步启动，立即返回）"""
@@ -131,6 +164,9 @@ class WaypointPatrol:
 
                 # 发送目标
                 goal = self._create_goal(waypoint)
+                if self.clear_costmaps_each_goal:
+                    self._clear_costmaps(f"before_goal_{self.current_index}")
+
                 self.client.send_goal(goal)
 
                 # 等待结果
