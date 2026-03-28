@@ -214,7 +214,7 @@
       xyz="0 0 0" />
   </joint>
   <link
-    name="laser_Link">
+    name="laser_frame">
     <inertial>
       <origin
         xyz="-0.0030189 -0.00020139 -0.019649"
@@ -262,7 +262,7 @@
     <parent
       link="base_link" />
     <child
-      link="laser_Link" />
+      link="laser_frame" />
     <axis
       xyz="0 0 0" />
   </joint>
